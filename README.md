@@ -1,4 +1,4 @@
-# SphereSSL
+# SphereSSL-Docker
 
 <p align="center">
   <img src="https://github.com/kl3mta3/SphereSSL/blob/master/Images/SphereSSL_ICON.png" alt="SphereSSL Logo" width="300"/>
@@ -7,7 +7,7 @@
 </h2>
 </p>
 
-> **SphereSSL** is a modern, user-friendly certificate manager for Windows, built with ASP.NET.  
+> **SphereSSL** is a modern, user-friendly certificate manager, built with ASP.NET.  
 > Make SSL certificate creation and renewal effortless for everyone—whether you’re a hobbyist or a professional.  
 > Handles both manual and automated DNS challenges, supports multiple DNS providers, and puts the power of SSL in the hands of, well… literally everyone.
 
@@ -42,9 +42,8 @@
 
 ## Installation & Quick Start
 “This release will only be available here for a short time. After that, visit Spheressl.com for future versions. Coming soon!!!”
-1. **[Download the latest release](https://github.com/SphereNetwork/SphereSSL/releases)** and extract it.
-2. **Run SphereSSL.exe** (no complicated setup).
-3. **Configure your settings:**  
+1. **[Download the latest release](https://github.com/SphereNetwork/SphereSSL-Docker/releases)** and extract it.
+2. **Configure your settings:**  
    - Add domains
    - Choose or add a DNS provider
    - Set up auto-renew (optional)
@@ -97,7 +96,6 @@ If you spot a bug or want to add a provider, open an [issue](https://github.com/
 ## Roadmap
 
 - [ ] Add more DNS providers
-- [ ] Linux & cross-platform support
 - [ ] Webhooks & external integrations
 - [ ] Fully automated enterprise deployment
 
