@@ -17,6 +17,9 @@ SphereSSL is an SSL certificate management platform built with C# and ASP.NET Co
 ## Manual Docker Build
 
 ```bash
+
+# Option 1- Build Locally
+
 # Build the image
 docker build -t spheressl .
 
@@ -29,6 +32,21 @@ docker run -d \
   --name spheressl \
   --restart unless-stopped \
   spheressl
+
+# Option 2- Run from Docker Hub
+
+# Pull the latest image
+docker pull kl3mta3/spheressl:latest
+
+# Or just run directly (no local build needed!)
+docker run -d \
+  -p 7171:7171 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/certs:/app/certs \
+  -v $(pwd)/logs:/app/logs \
+  --name spheressl \
+  --restart unless-stopped \
+  kl3mta3/spheressl:latest
 ```
 
 ## Technical Architecture
