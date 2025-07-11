@@ -45,12 +45,38 @@ Get the Image here- <a href = "https://hub.docker.com/r/kl3mta3/spheressl"> Dock
 
 ## Installation & Quick Start
 “This release will only be available here for a short time. After that, visit Spheressl.com for future versions. Coming soon!!!”
-1. **[Download the latest release](https://github.com/SphereNetwork/SphereSSL-Docker/releases)** and extract it.
-2. **Configure your settings:**  
-   - Add domains
-   - Choose or add a DNS provider
-   - Set up auto-renew (optional)
-4. **Request your certificate** and let SphereSSL handle the rest!
+
+# Option 1- Build Locally
+
+# Build the image
+docker build -t spheressl .
+
+# Run the container with persistent storage
+docker run -d \
+  -p 7171:7171 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/certs:/app/certs \
+  -v $(pwd)/logs:/app/logs \
+  --name spheressl \
+  --restart unless-stopped \
+  spheressl
+
+# Option 2- Run from Docker Hub
+
+# Pull the latest image
+docker pull kl3mta3/spheressl:latest
+
+# Or just run directly (no local build needed!)
+docker run -d \
+  -p 7171:7171 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/certs:/app/certs \
+  -v $(pwd)/logs:/app/logs \
+  --name spheressl \
+  --restart unless-stopped \
+  kl3mta3/spheressl:latest
+
+ **Request your certificate** and let SphereSSL handle the rest!
 
 > **Tip:** For advanced setup, head to the [Wiki](https://github.com/SphereNetwork/SphereSSL/wiki/SphereSSL).
 
