@@ -138,12 +138,16 @@ namespace SphereSSLv2.Services.Config
            
         }
 
-
-
         private static async Task InitilizeDatabase()
         {
      
             var now = DateTime.UtcNow;
+
+            var dbFolder = Path.GetDirectoryName(ConfigureService.dbPath);
+            if (!Directory.Exists(dbFolder))
+            {
+                Directory.CreateDirectory(dbFolder);
+            }
 
             await DatabaseManager.Initialize();
             await HealthRepository.RecalculateHealthStats();

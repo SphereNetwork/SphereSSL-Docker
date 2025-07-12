@@ -154,7 +154,7 @@ namespace SphereSSLv2.Pages
             };
 
             await ConfigureService.UpdateConfigFile(config);
-            return RedirectToPage("/Settings");
+            return RedirectToPage("/Settings#advanced");
         }
 
         public async Task<IActionResult> OnPostAddUserAsync([FromBody] NewUserRequest userRequest)
@@ -518,10 +518,10 @@ namespace SphereSSLv2.Pages
 
             HttpContext.Session.Remove("UserSession");
             HttpContext.Session.Clear();
-            ServerController serverController = new ServerController(_logger);
-            await serverController.UpdateDBPath(dbRequest.DbPath);
-            Task.Delay(5000).Wait();
-            return new JsonResult(new { success = true, redirect = "/Index" });
+
+            await ConfigureService.UpdateConfigFile(config);
+
+            return new JsonResult(new { success = true, redirect = "/Settings#device" });
 
         }
 
@@ -551,17 +551,21 @@ namespace SphereSSLv2.Pages
             }
 
 
-            UpdateServerRequest config = new UpdateServerRequest
+            StoredConfig config = new StoredConfig
             {
 
-                ServerUrl = serverRequest.ServerUrl,
+                ServerURL = serverRequest.ServerUrl,
                 ServerPort = serverRequest.ServerPort,
 
+
             };
-            ServerController serverController = new ServerController(_logger);
-            await serverController.UpdateserverPath(config);
-            Task.Delay(5000).Wait();
-            return new JsonResult(new { success = true, redirect = $"http://{config.ServerUrl}:{config.ServerPort}/Index" });
+
+            HttpContext.Session.Remove("UserSession");
+            HttpContext.Session.Clear();
+
+            await ConfigureService.UpdateConfigFile(config);
+
+            return new JsonResult(new { success = true, redirect = $"http://{config.ServerURL}:{config.ServerPort}/index" });
         }
 
         public async Task<IActionResult> OnPostResetServerToFactoryAsync()
@@ -581,10 +585,12 @@ namespace SphereSSLv2.Pages
 
             try
             {
+               
 
-                ServerController serverController = new ServerController(_logger);
-                await serverController.FactoryReset();
-                Task.Delay(5000).Wait();
+                await ConfigureService.ResetToFactory();
+
+                HttpContext.Session.Remove("UserSession");
+                HttpContext.Session.Clear();
                 return new JsonResult(new { success = true, redirect = $"http://127.0.0.1:7171/Index" });
             }
             catch (Exception ex)
@@ -616,8 +622,8 @@ namespace SphereSSLv2.Pages
             {
                 HttpContext.Session.Remove("UserSession");
                 HttpContext.Session.Clear();
-                ServerController serverController = new ServerController(_logger);
-                await serverController.Restart();
+
+                await ConfigureService.RestartServer();
                 return new JsonResult(new { success = true, redirect = "/Index" });
             }
             catch (Exception ex)
@@ -776,18 +782,22 @@ namespace SphereSSLv2.Pages
             if (CurrentUser == null || !CurrentUser.Role.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase))
                 return RedirectToPage("/Index");
 
-            StoredConfig config = await ConfigureService.LoadConfigFile();
 
-            config.CAPrimeUrl = caUrlRequest.CAPrimeUrl;
-            config.CAStagingUrl = caUrlRequest.CAStagingUrl;
 
-            ConfigureService.CAPrimeUrl = caUrlRequest.CAPrimeUrl;
-            ConfigureService.CAStagingUrl = caUrlRequest.CAStagingUrl;
+            StoredConfig config = new StoredConfig
+            {
 
-            var json = JsonConvert.SerializeObject(config, Formatting.Indented);
-            System.IO.File.WriteAllText(ConfigureService.ConfigFilePath, json);
+                CAPrimeUrl = caUrlRequest.CAPrimeUrl,
+                CAStagingUrl = caUrlRequest.CAStagingUrl,
 
-            return new JsonResult(new { success = true, message = "CA URLs updated!" });
+            };
+
+            HttpContext.Session.Remove("UserSession");
+            HttpContext.Session.Clear();
+
+            await ConfigureService.UpdateConfigFile(config);
+
+            return new JsonResult(new { success = true, redirect = "/Settings#advanced" });
         }
     }
 }

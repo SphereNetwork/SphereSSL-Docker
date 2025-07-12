@@ -23,9 +23,6 @@ namespace SphereSSLv2.Services.Config
         internal static bool UseLogOn = false;
         internal static bool IsLogIn = false;
         internal static string ConfigFilePath = "app.config";
-        // Tray app removed for Docker compatibility
-        // internal static Process TrayAppProcess;
-        // internal static string TrayAppPath = Path.Combine(AppContext.BaseDirectory, "SphereSSL.exe");
         internal static string ServerIP { get; set; } = "0.0.0.0";
         internal static int ServerPort { get; set; } = 7171;
         public static double RefreshExpiringSoonRateInHours { get; } = 24;
@@ -53,11 +50,6 @@ namespace SphereSSLv2.Services.Config
 
         //for testing
         internal static bool GenerateFakeTestCerts = false;
-
-        internal static void OnProcessExit(object? sender, EventArgs e)
-        {
-            // Tray app cleanup removed for Docker compatibility
-        }
 
         internal static async Task SaveConfigFile(StoredConfig config)
         {
@@ -135,15 +127,6 @@ namespace SphereSSLv2.Services.Config
             {
                 throw new InvalidOperationException("Failed to update saved config.", ex);
             }
-        }
-
-        private static async Task UpdateConfigSettings(DeviceConfig config)
-        {
-            UseLogOn = config.UsePassword;
-            ServerIP = config.ServerURL;
-            ServerPort = config.ServerPort;
-            Username = config.Username;
-            HashedPassword = config.PasswordHash;
         }
 
         internal static async Task<StoredConfig> LoadConfigFile()
@@ -269,10 +252,15 @@ namespace SphereSSLv2.Services.Config
             return await ExtractDnsProvider(results[0]);
         }
 
+        public static async Task ForceRestartDockerContainer()
+        {
+
+            Environment.Exit(1);
+
+        }
 
 
-
-            public static async Task SeedCertRecords()
+        public static async Task SeedCertRecords()
             {
                 var now = DateTime.UtcNow;
 
@@ -361,7 +349,106 @@ namespace SphereSSLv2.Services.Config
 
                     await CertRepository.InsertCertRecord(cert);
              }
-     }
+
+        static bool IsRunningInDocker()
+        {
+            // Check for /.dockerenv file (classic Docker detection)
+            if (File.Exists("/.dockerenv"))
+                return true;
+
+            // Check /proc/1/cgroup for "docker" or "containerd"
+            if (File.Exists("/proc/1/cgroup"))
+            {
+                var cgroup = File.ReadAllText("/proc/1/cgroup");
+                if (cgroup.Contains("docker") || cgroup.Contains("containerd") || cgroup.Contains("kubepods"))
+                    return true;
+            }
+
+            return false;
+        }
+
+        static bool IsLinux()
+        {
+            return System.Runtime.InteropServices.RuntimeInformation
+                .IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux);
+        }
+
+        internal static async Task RestartServer()
+        {
+            if (IsRunningInDocker())
+            {
+                await ForceRestartDockerContainer();
+            }
+            else if (IsLinux() && !IsRunningInDocker())
+            {
+                RelaunchSelf();
+            }
+            else
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = "run --no-build",
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+                Process.Start(startInfo);
+                Environment.Exit(0);
+            }
+        }
+
+        public static void RelaunchSelf()
+        {
+            string exePath = Environment.ProcessPath;
+            if (exePath.EndsWith("dotnet", StringComparison.OrdinalIgnoreCase))
+            {
+                string dllPath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                var psi = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    Arguments = $"\"{dllPath}\"",
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+                Process.Start(psi);
+            }
+            else
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+                Process.Start(psi);
+            }
+            Environment.Exit(0);
+        }
+
+        internal static async Task ResetToFactory()
+        {
+
+          
+            try
+            {
+                string defaultConfigPath = "default.config";
+                if (!File.Exists(defaultConfigPath))
+                {
+                    throw new FileNotFoundException("Default config file not found.", defaultConfigPath);
+                }
+                string defaultConfigContent = await File.ReadAllTextAsync(defaultConfigPath);
+                await File.WriteAllTextAsync(ConfigFilePath, defaultConfigContent);
+
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Failed to reset to factory settings.", ex);
+            }
+
+
+
+        }
+    }
  }
 
 
