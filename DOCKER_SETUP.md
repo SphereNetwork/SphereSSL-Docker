@@ -26,6 +26,7 @@ docker build -t spheressl .
 # Run the container with persistent storage
 docker run -d \
   -p 7171:7171 \
+  -v $(pwd)/app.config:/app/app.config \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/certs:/app/certs \
   -v $(pwd)/logs:/app/logs \
@@ -41,12 +42,14 @@ docker pull kl3mta3/spheressl:latest
 # Or just run directly (no local build needed!)
 docker run -d \
   -p 7171:7171 \
+  -v $(pwd)/app.config:/app/app.config \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/certs:/app/certs \
   -v $(pwd)/logs:/app/logs \
   --name spheressl \
   --restart unless-stopped \
   kl3mta3/spheressl:latest
+
 ```
 
 ## Technical Architecture

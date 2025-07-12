@@ -16,6 +16,7 @@ RUN dotnet publish "SphereSSLv2.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY SphereSSLv2/app.config ./app.config
 
 # Create directories for persistent data
 RUN mkdir -p /app/data /app/certs /app/logs
